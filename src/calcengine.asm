@@ -11,6 +11,9 @@ section .bss
     parse_cursor resq 1
 
 section .text
+; Calculates a string expression (e.g. 387.2 + 2 - 474) with Pratt Parsing
+; @param rdi *Buf expression buffer
+; @return xmm0 evaluated float 
 calcStrExpr: ; rdi *Buf, xmm0 float return
     mov [parse_cursor], rdi
 
@@ -20,18 +23,18 @@ calcStrExpr: ; rdi *Buf, xmm0 float return
     add rsp, 8
     ret
 
+    ; Returns current character
+    ; @param parse_cursor (none)
+    ; @return byte rax current character
     .PeekToken: ; returns current character to rax
         mov rax, [parse_cursor]
         movzx eax, byte [rax]
         ret
 
-    .ConsumeToken: ; return current character and advance cursor
-        ; store current character result from peektoken
-
-        ; if character isnt \0
-        ; move parse_cursor 1 byte
-
-        ; return current character
+    ; Returns current character and advances cursor
+    ; @param parse_cursor (none)
+    ; @return byte rax current character
+    .ConsumeToken:
         mov rax, [parse_cursor]
         movzx eax, byte [rax]
 
@@ -43,8 +46,10 @@ calcStrExpr: ; rdi *Buf, xmm0 float return
         .done:
             ret
 
-    .ParseNumber: ; from current cursor position, find an operator or EOF, parse current pos to operator pos to strtod, return float
-        ; old_cursor = parse_cursor
+    ; Find an operator, parse current pos to next operator pos to strtod, returns float
+    ; @param parse_cursor (none)
+    ; @return xmm0 float
+    .ParseNumber:
         push rbx
 
         mov rbx, [parse_cursor]
@@ -64,7 +69,10 @@ calcStrExpr: ; rdi *Buf, xmm0 float return
 
             ret
 
-    .GetPrecedence: ; parse_cursor, returns rax precedence
+    ; Returns precedence of character at cursor position
+    ; @param parse_cursor (none)
+    ; @return rax precedence 
+    .GetPrecedence:
         mov rax, [parse_cursor]
         movzx eax, byte [rax]
         
@@ -88,7 +96,10 @@ calcStrExpr: ; rdi *Buf, xmm0 float return
             mov rax, 20
             ret
 
-    .ParsePrimary: ; parse_cursor, xmm0 output (garbage garbage thing thing pratt eww)
+    ; Pratt ewww
+    ; @param parse_cursor (none)
+    ; @return xmm0 float
+    .ParsePrimary:
         sub rsp, 8
 
         mov rax, [parse_cursor]
@@ -144,7 +155,10 @@ calcStrExpr: ; rdi *Buf, xmm0 float return
             add rsp, 8
             ret
 
-    .ParseExpression: ; rdi min precedence, xmm0 calculated double
+    ; Parsing ewww
+    ; @param rdi minimum precedence
+    ; @return xmm0 calculated float
+    .ParseExpression:
         push rbx
         push r12
         sub rsp, 24
@@ -153,7 +167,6 @@ calcStrExpr: ; rdi *Buf, xmm0 float return
         call .ParsePrimary ; left = xmm0
         movsd [rsp], xmm0
 
-        ; while true
         .ParseLoop:
             mov rbx, [parse_cursor]
             movzx ebx, byte [rbx]

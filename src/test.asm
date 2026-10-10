@@ -14,6 +14,15 @@ section .data
     db "100/4",0
     db "123.45+67.89",0
 
+    ; Reciprocals
+    db "1/2",0       ; 0.5
+    db "1/4",0       ; 0.25
+    db "1/8",0       ; 0.125
+    db "1/0.5",0     ; 2
+    db "1/-4",0      ; -0.25
+    db "1/(2+3)",0   ; 0.2
+    db "1/0",0 ; the results unlocks the key to the universe and everything in it
+
     ; Operator precedence
     db "2+3*4",0
     db "10-6/2",0
